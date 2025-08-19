@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Card Extractor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #121212;
+      color: #e0e0e0;
+      text-align: center;
+    }
+    h2, h3, p { color: #ffffff; }
+    .box {
+      position: relative;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    textarea, pre {
+      width: 100%;
+      height: 200px;
+      box-sizing: border-box;
+      padding: 12px;
+      font-size: 14px;
+      background: #1e1e1e;
+      color: #f5f5f5;
+      border: 1px solid #333;
+      border-radius: 10px;
+      resize: none;
+      font-family: monospace;
+      text-align: left;
+    }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-y: auto;
+    }
+    .btn {
+      position: absolute;
+      padding: 6px 16px;
+      font-size: 13px;
+      background: #2979ff;
+      border: none;
+      color: #fff;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #1c54b2; }
+    .btn-paste { bottom: 10px; right: 10px; }
+    .btn-copy { bottom: 10px; right: 10px; }
+    .convert-btn {
+      margin: 15px auto;
+      padding: 10px 28px;
+      font-size: 14px;
+      background: #2979ff;
+      border: none;
+      color: #fff;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: block;
+    }
+    .convert-btn:hover { background: #1c54b2; }
+  </style>
+</head>
+<body>
+  <h2>Card Extractor</h2>
+  <p>Paste your data below and click Convert.</p>
+
+  <div class="box">
+    <textarea id="input" placeholder="Paste data here..."></textarea>
+    <button class="btn btn-paste" onclick="pasteInput()">Paste</button>
+  </div>
+
+  <button class="convert-btn" onclick="convert()">Convert</button>
+
+  <h3>Output:</h3>
+  <div class="box">
+    <pre id="output" contenteditable="true"></pre>
+    <button class="btn btn-copy" onclick="copyOutput()">Copy</button>
+  </div>
+
+  <script>
+    async function pasteInput() {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById("input").value = text;
+      } catch (err) {
+        alert("Unable to paste. Please allow clipboard permissions.");
+      }
+    }
+
+    function convert() {
+      const text = document.getElementById("input").value;
+      let results = [];
+
+      // Format 1: Live | ... 
+      const regex1 = /Live \|\s*(\d+)\|(\d{2})\|(\d{4})\|(\d+)/gi;
+      let match;
+      while ((match = regex1.exec(text)) !== null) {
+        let [_, card, mm, yyyy, cvv] = match;
+        results.push(`${card}|${mm}|${yyyy}|${cvv}`);
+      }
+
+      // Format 2: Cn: ... Exp ... Cvv ...
+      const regex2 = /Cn:\s*(\d+)\s*Exp\s*(\d{2})\s*\/\s*(\d{4})\s*Cvv\s*(\d+)/gi;
+      while ((match = regex2.exec(text)) !== null) {
+        let [_, card, mm, yyyy, cvv] = match;
+        results.push(`${card}|${mm}|${yyyy}|${cvv}`);
+      }
+
+      document.getElementById("output").textContent = 
+        results.join("\n") || "No valid data found.";
+    }
+
+    function copyOutput() {
+      const output = document.getElementById("output").textContent;
+      navigator.clipboard.writeText(output).then(() => {
+        alert("Output copied to clipboard!");
+      });
+    }
+  </script>
+</body>
+</html>
